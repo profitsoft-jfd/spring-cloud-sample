@@ -1,0 +1,73 @@
+version: "3"
+services:
+  mysql:
+    image:  arm64v8/mysql:8.0
+    container_name: mysql8
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: users
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+
+  elasticsearch:
+    image: elasticsearch:7.12.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    ports:
+      - "9202:9200"
+
+  mongo-persons:
+    image: arm64v8/mongo:latest
+    container_name: persons
+    ports:
+      - "27001:27017"
+
+  mongo-cars:
+    image: arm64v8/mongo:latest
+    container_name: cars
+    ports:
+      - "27002:27017"
+
+  mongo-estate:
+    image: arm64v8/mongo:latest
+    container_name: estate
+    ports:
+      - "27003:27017"
+
+  kafka:
+    image: bitnami/kafka
+    container_name: kafka
+    ports:
+      - '9094:9092'
+    environment:
+#      - KAFKA_BROKER_ID=1
+#      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+#      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: arm64v8/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  consul:
+    image: arm64v8/consul
+    container_name: consul
+    ports:
+      - 8600:8500
+    command: consul agent -dev -client 0.0.0.0
+
+
+
+
