@@ -12,7 +12,7 @@ spring:
   cloud:
     consul:
       host: localhost
-      port: 8600
+      port: 8501
       discovery:
         health-check-path: /health
   kafka:

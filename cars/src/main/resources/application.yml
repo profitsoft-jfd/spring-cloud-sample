@@ -1,12 +1,12 @@
 server:
-  port: 1001
+  port: 1002
   error:
     include-message: always
     include-binding-errors: always
 
 spring:
   application:
-    name: persons
+    name: cars
   config:
     import: optional:consul:/
   cloud:
@@ -15,9 +15,6 @@ spring:
       port: 8501
       discovery:
         health-check-path: /health
-  data:
-    mongodb:
-      uri: ${mongoUri}
   kafka:
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

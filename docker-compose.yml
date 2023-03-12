@@ -23,21 +23,9 @@ services:
 
   mongo-persons:
     image: arm64v8/mongo:latest
-    container_name: persons
+    container_name: mongo
     ports:
       - "27001:27017"
-
-  mongo-cars:
-    image: arm64v8/mongo:latest
-    container_name: cars
-    ports:
-      - "27002:27017"
-
-  mongo-estate:
-    image: arm64v8/mongo:latest
-    container_name: estate
-    ports:
-      - "27003:27017"
 
   kafka:
     image: bitnami/kafka
@@ -65,8 +53,10 @@ services:
     image: arm64v8/consul
     container_name: consul
     ports:
-      - 8600:8500
-    command: consul agent -dev -client 0.0.0.0
+      - 8501:8500
+    command: consul agent -server -ui -node=server-1 -bootstrap-expect=1 -data-dir /consul/data -client=0.0.0.0
+    volumes:
+      - ./config-data:/consul/data
 
 
 

@@ -4,6 +4,7 @@ import com.springcloud.searcher.api.PersonsSearchHandler;
 import com.springcloud.searcher.ingestion.PersonRepository;
 import com.springcloud.searcher.model.Person;
 import com.springcloud.searcher.model.Property;
+import com.springcloud.searcher.model.PropertyType;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.NestedQueryBuilder;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
@@ -43,6 +43,23 @@ public class PersonsElasticRepository implements PersonRepository, PersonsSearch
   }
 
   @Override
+  public Person findByPropertyId(PropertyType type, String id) {
+    NestedQueryBuilder nestedQuery  = nestedQuery(
+        Person.Fields.property,
+        boolQuery()
+            .filter(termsQuery(Person.Fields.property + "." + Property.Fields.type, type.name()))
+            .filter(termsQuery(Person.Fields.property + "." + Property.Fields.propertyId, id)),
+        ScoreMode.None
+    );
+    return searchOperations.search(new NativeSearchQuery(nestedQuery), Person.class)
+        .getSearchHits()
+        .stream()
+        .map(SearchHit::getContent)
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Override
   public List<Person> search(String requestString) {
     Person person = documentOperations.get(requestString, Person.class);
     if (person != null) {
@@ -53,24 +70,23 @@ public class PersonsElasticRepository implements PersonRepository, PersonsSearch
       return persons.getSearchHits()
           .stream()
           .map(SearchHit::getContent)
-          .collect(Collectors.toList());
+          .toList();
     }
     return searchOperations.search(queryForText(requestString), Person.class)
         .getSearchHits()
         .stream()
         .map(SearchHit::getContent)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private Query queryForDocument(String request) {
-    return new NativeSearchQuery(boolQuery()
-        .filter(nestedQuery(
-            Person.Fields.property,
-            termsQuery(
-                Person.Fields.property + "." + Property.Fields.document,
-                request),
-            ScoreMode.None)
-        ));
+    return new NativeSearchQuery(nestedQuery(
+        Person.Fields.property,
+        termsQuery(
+            Person.Fields.property + "." + Property.Fields.document,
+            request),
+        ScoreMode.None)
+    );
   }
 
   private Query queryForText(String request) {

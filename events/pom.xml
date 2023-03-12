@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>persons-updated</module>
+        <module>property-updated</module>
     </modules>
 
     <properties>
