@@ -1,0 +1,33 @@
+server:
+  port: 1004
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: searcher
+  config:
+    import: optional:consul:/
+  cloud:
+    consul:
+      host: localhost
+      port: 8600
+      discovery:
+        health-check-path: /health
+  kafka:
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: com.springcloud.events
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: "*"

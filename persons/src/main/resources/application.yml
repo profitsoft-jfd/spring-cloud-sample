@@ -1,0 +1,34 @@
+server:
+  port: 1001
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: persons
+  config:
+    import: optional:consul:/
+  cloud:
+    consul:
+      host: localhost
+      port: 8600
+      discovery:
+        health-check-path: /health
+  data:
+    mongodb:
+      uri: ${mongoUri}
+  kafka:
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: "*"
