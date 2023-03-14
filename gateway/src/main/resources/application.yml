@@ -1,0 +1,73 @@
+server:
+  port: 1000
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: gateway
+  config:
+    import: optional:consul:/
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: ${dbUrl}
+    username: ${dbUser}
+    password: ${dbPassword}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  cloud:
+    consul:
+      host: localhost
+      port: 8501
+      discovery:
+        health-check-path: /health
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: token
+          uri: lb://gateway
+          predicates:
+            - Path=/token/**
+        - id: person-search
+          uri: lb://searcher
+          order: -1
+          predicates:
+            - Path=/persons/persons/{personId}
+            - Method=GET
+          filters:
+            - RewritePath=/persons(?<personId>/?.*), /search
+            - AddRequestParameter=search, {personId}
+        - id: cars-circuit
+          uri: lb://cars
+          order: -1
+          predicates:
+            - Path=/cars
+          filters:
+            - CircuitBreaker=services
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      services:
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 60
+        slow-call-duration-threshold:
+          - 2s
+        minimum-number-of-calls: 3
+        permitted-number-of-calls-in-half-open-state: 1
+
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: "*"
